@@ -15,6 +15,31 @@
 %define tunnel_pattern 6
 %define tilt_plate_pattern 4+8+16
 %define circles_pattern 8+16
+%define offset 0x100
+
+;; Super-crappy move of code from 0x7c00 (the address the boot sector is loaded to)
+;; to the location used in the original demo
+setup:
+    xor ax, ax
+    mov al,0x13					; ah = 0 (set video mode), al = 0x13 (256-color mode)
+	int 0x10	 				; BIOS video service
+    mov bx, 0x7c00 + s - setup
+    mov cx, fx6q - s + 1
+move_code:
+    xor ax, ax
+    add bx, cx
+    dec bx
+    mov ax, [bx]
+    sub bx, cx
+    inc bx
+    mov di, cx
+    add di, offset
+    dec di
+    mov [di], ax
+    loop move_code
+    mov ax, offset
+    jmp ax
+
 
 org 100h
 s:
