@@ -138,3 +138,7 @@ fx6: ; ocean night / to day sky
 	dec ax
 fx6q:
 ret
+
+    times 510-($-$$) db 0
+    db 0x55
+    db 0xaa
