@@ -20,25 +20,21 @@
 ;; Super-crappy move of code from 0x7c00 (the address the boot sector is loaded to)
 ;; to the location used in the original demo
 setup:
-    xor ax, ax
+    xor ah, ah
     mov al,0x13					; ah = 0 (set video mode), al = 0x13 (256-color mode)
 	int 0x10	 				; BIOS video service
-    mov bx, 0x7c00 + s - setup
     mov cx, fx6q - s + 1
-move_code:
-    xor ax, ax
+    mov bx, 0x7c00 + s - setup
     add bx, cx
+	mov di, offset
+    add di, cx
+move_code:
     dec bx
     mov ax, [bx]
-    sub bx, cx
-    inc bx
-    mov di, cx
-    add di, offset
     dec di
     mov [di], ax
     loop move_code
-    mov ax, offset
-    jmp ax
+    jmp di
 
 
 org 100h
