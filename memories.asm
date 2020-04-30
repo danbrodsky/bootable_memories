@@ -153,6 +153,8 @@ ret
 fx6: ; ocean night / to day sky
 	sub dh,120
 	js fx6q
+    add bx, bx                  ; shifting bx over keeps it from overwriting needed code
+								; FIXME: cleaner way to do this
 	mov [bx+si],dx
 	fild word [bx+si]
 	fidivr dword [bx+si]
