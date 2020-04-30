@@ -1,34 +1,10 @@
 ; "memories" by HellMood/DESiRE
 ; the tiny megademo, 256 byte msdos intro
 ; shown in April 2020 @ REVISION
-;
-;   (= WILL BE COMMENTED IN DETAIL LATER =)
-;
-; create : nasm.exe memories.asm -fbin -o memories.com
-; CHOOSE YOUR TARGET PLATFORM (compo version is dosbox)
-; be sure to use the dosbox.conf from this archive!
-; only ONE of the defines should be active!
-%define dosbox			; size : 256 bytes
-;%define freedos		; size : 230 bytes
-;%define winxpdos		; size : 263 bytes
 
-; DON'T TOUCH THESE UNLESS YOU KNOW WHAT YOU'RE DOING
-%ifdef winxpdos
-	%define music
-	%define switch_uart
-	%define safe_dx
-	%define safe_segment
-%endif
-%ifdef freedos
-	%define safe_dx
-%endif
-%ifdef dosbox
-	%define music
-	;%define safe_dx ; sometimes needed
-%endif
+; Partially converted to a boot sector
 
 ; GLOBAL PARAMETERS, TUNE WITH CARE!
-%define volume 127	; not used on dosbox (optimization)
 %define instrument 11
 %define scale_mod -19*32*4;
 %define time_mask 7
@@ -42,28 +18,7 @@
 
 org 100h
 s:
-%ifdef freedos
-	mov fs,ax
-	mov [fs:0x46c],ax
-%endif
-	mov al,0x13
-	int 0x10
-	xchg bp,ax
-	push 0xa000-10
-	pop es
-%ifndef freedos
-	mov ax,0x251c
-	%ifdef safe_dx
-		mov dx,timer
-	%else ; assume DH=1, mostly true on DosBox
-		mov dl,timer
-	%endif
-	int 0x21
-%endif
 top:
-%ifdef freedos
-	mov bp,[fs:0x46c]
-%endif
 	mov ax,0xcccd
 	mul di
 	add al,ah
@@ -86,46 +41,11 @@ top:
 	jnz top
 sounds:
 	db 0xc3	; is MIDI/RET
-%ifdef music
-	db instrument,0x93
-	%ifdef switch_uart
-		db volume		; without switch, volume is in table
-		db 0x3f
-	%endif
-%endif
 table: ; first index is volume, change order with care!
 	db fx2-s,fx1-s,fx0-s,fx3-s,fx4-s,fx5-s,fx6-s,sounds-s,stop-s
 stop:
 	pop ax
 	ret
-timer:
-%ifndef freedos
-	%ifdef safe_segment
-		push cs
-		pop ds
-	%endif
-		inc bp
-	%ifdef music
-		test bp, time_mask
-		jnz nomuse
-		mov dx,0x330
-		mov si,sounds
-		outsb
-		outsb
-		outsb
-		imul ax,bp,scale_mod
-		shr ax,10
-		add al,22
-		out dx,al
-		outsb
-		%ifdef switch_uart
-			inc dx
-			outsb
-		%endif
-	%endif
-nomuse:
-	iret
-%endif
 fx0: ; tilted plane, scrolling
 	mov ax,0x1329
 	add dh,al
