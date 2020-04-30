@@ -43,6 +43,8 @@ move_code:
 
 org 100h
 s:
+    push 0xa000 - 10
+    pop es
 top:
 	mov ax,0xcccd
 	mul di
@@ -53,17 +55,15 @@ top:
 	and al,15
 	xchg bx,ax
 	mov bh,1
-	mov bl,[byte bx+table]
+	mov bl,[byte bx+table-s]
 	call bx
 	stosb
 	inc di
 	inc di
 	jnz top
-	mov al,tempo
-	out 40h,al
-	in al,0x60
-	dec al
-	jnz top
+    inc bp                      ; who needs timer interrupts anyways?
+                                ; FIXME: set to tempo speed
+	jmp top
 sounds:
 	db 0xc3	; is MIDI/RET
 table: ; first index is volume, change order with care!
